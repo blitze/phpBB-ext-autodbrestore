@@ -1,9 +1,3 @@
-#
-# phpBB Backup Script
-# Dump of tables for phpbb_
-# DATE : 16-10-2017 15:54:04 GMT
-#
-# Table: phpbb_styles
 DROP TABLE IF EXISTS phpbb_styles;
 CREATE TABLE `phpbb_styles` (
   `style_id` mediumint(8) unsigned NOT NULL AUTO_INCREMENT,
@@ -19,4 +13,3 @@ CREATE TABLE `phpbb_styles` (
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 INSERT INTO phpbb_styles (style_id, style_name, style_copyright, style_active, style_path, bbcode_bitfield, style_parent_id, style_parent_tree) VALUES (1, 'prosilver', '&copy; phpBB Limited', 1, 'prosilver', 'kNg=', 0, '');
-
