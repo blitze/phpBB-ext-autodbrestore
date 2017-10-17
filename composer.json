@@ -2,14 +2,14 @@
     "name": "blitze/autodbrestore",
     "type": "phpbb-extension",
     "description": "Automatically restore database to a specified backup",
-    "homepage": "",
+    "homepage": "https://github.com/blitze/phpBB-ext-autodbrestore",
     "version": "1.0.0",
     "time": "2017-10-12",
     "license": "GPL-2.0",
     "authors": [{
-        "name": "blitze",
+        "name": "Daniel A.",
         "email": "shizzah@hotmail.com",
-        "homepage": "https://github.com/blitze/phpBB-ext-autodbrestore",
+        "homepage": "https://github.com/blitze",
 		"role": "Lead Developer"
     }],
     "require": {
