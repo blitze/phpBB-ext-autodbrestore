@@ -10,6 +10,7 @@
 
 namespace blitze\autodbrestore\tests\cron;
 
+use blitze\autodbrestore\services\db_restorer;
 use blitze\autodbrestore\cron\task\restore;
 
 class restore_test extends \phpbb_database_test_case
@@ -101,7 +102,9 @@ class restore_test extends \phpbb_database_test_case
 		$user = new \phpbb\user($language, '\phpbb\datetime');
 		$user->data['user_id'] = 2;
 
-		$task = new restore($cache, $config, $this->db, $logger, $user, $phpbb_root_path, $phpEx, dirname(__FILE__) . '/fixtures/');
+		$db_restorer = new db_restorer($this->db, $phpbb_root_path, $phpEx, dirname(__FILE__) . '/fixtures/');
+
+		$task = new restore($cache, $config, $logger, $user, $db_restorer);
 
 		// this is normally called automatically in the yaml service config
 		// but we have to do it manually here

@@ -15,24 +15,34 @@ namespace blitze\autodbrestore\cron\task;
  */
 class restore extends \phpbb\cron\task\base
 {
+	/** @var \phpbb\cache\driver\driver_interface */
+	protected $cache;
+
 	/** @var \phpbb\config\config */
 	protected $config;
+
+	/** @var \phpbb\user */
+	protected $user;
+
+	/** @var \blitze\autodbrestore\services\db_restorer */
+	protected $db_restorer;
 
 	/**
 	 * Constructor
 	 *
-	 * @param \phpbb\config\config $config Config object
+	 * @param \phpbb\cache\driver\driver_interface			$cache				Cache driver interface
+	 * @param \phpbb\config\config							$config				Config object
+	 * @param \phpbb\log\log_interface						$logger				phpBB logger
+	 * @param \phpbb\user									$user				User object
+	 * @param \blitze\autodbrestore\services\db_restorer	$db_restorer		Restores db to specified file
 	 */
-	public function __construct($cache, \phpbb\config\config $config, $db, $logger, $user, $phpbb_root_path, $php_ext, $db_file_path = '')
+	public function __construct(\phpbb\cache\driver\driver_interface $cache, \phpbb\config\config $config, \phpbb\log\log_interface $logger, \phpbb\user $user, \blitze\autodbrestore\services\db_restorer $db_restorer)
 	{
 		$this->cache = $cache;
 		$this->config = $config;
-		$this->db = $db;
 		$this->logger = $logger;
 		$this->user = $user;
-		$this->phpbb_root_path = $phpbb_root_path;
-		$this->php_ext = $php_ext;
-		$this->db_file_path = $db_file_path ?: $this->phpbb_root_path . 'store/';
+		$this->db_restorer = $db_restorer;
 	}
 
 	/**
@@ -43,9 +53,12 @@ class restore extends \phpbb\cron\task\base
 	public function run()
 	{
 		// Run your cron actions here...
-		include($this->phpbb_root_path . 'includes/acp/acp_database.' . $this->php_ext);
+		$this->db_restorer->run($this->config['blitze_autodbrestore_file']);
 
-		$this->restore_db();
+		// Purge the cache due to updated data
+		$this->cache->purge();
+
+		$this->logger->add('admin', $this->user->data['user_id'], $this->user->ip, 'LOG_DB_RESTORE');
 
 		// Update the cron task run time here if it hasn't
 		// already been done by your cron actions.
@@ -74,127 +87,5 @@ class restore extends \phpbb\cron\task\base
 	public function should_run()
 	{
 		return $this->config['blitze_autodbrestore_cron_last_run'] < time() - ($this->config['blitze_autodbrestore_frequency'] * 60);
-	}
-
-	protected function restore_db()
-	{
-		$file = $this->config['blitze_autodbrestore_file'];
-
-		if (!preg_match('#^backup_\d{10,}_[a-z\d]{16}\.(sql(?:\.(?:gz|bz2))?)$#', $file, $matches))
-		{
-			return false;
-		}
-
-		$file_name = $this->db_file_path . $matches[0];
-
-		if (!file_exists($file_name) || !is_readable($file_name))
-		{
-			return false;
-		}
-
-		switch ($matches[1])
-		{
-			case 'sql':
-				$fp = fopen($file_name, 'rb');
-				$read = 'fread';
-				$seek = 'fseek';
-				$eof = 'feof';
-				$close = 'fclose';
-				$fgetd = 'fgetd';
-			break;
-
-			case 'sql.bz2':
-				$fp = bzopen($file_name, 'r');
-				$read = 'bzread';
-				$seek = '';
-				$eof = 'feof';
-				$close = 'bzclose';
-				$fgetd = 'fgetd_seekless';
-			break;
-
-			case 'sql.gz':
-				$fp = gzopen($file_name, 'rb');
-				$read = 'gzread';
-				$seek = 'gzseek';
-				$eof = 'gzeof';
-				$close = 'gzclose';
-				$fgetd = 'fgetd';
-			break;
-		}
-
-		switch ($this->db->get_sql_layer())
-		{
-			case 'mysql':
-			case 'mysql4':
-			case 'mysqli':
-			case 'sqlite3':
-				while (($sql = $fgetd($fp, ";\n", $read, $seek, $eof)) !== false)
-				{
-					$this->db->sql_query($sql);
-				}
-			break;
-
-			case 'postgres':
-				$delim = ";\n";
-				while (($sql = $fgetd($fp, $delim, $read, $seek, $eof)) !== false)
-				{
-					$query = trim($sql);
-
-					if (substr($query, 0, 13) == 'CREATE DOMAIN')
-					{
-						list(, , $domain) = explode(' ', $query);
-						$sql = "SELECT domain_name
-							FROM information_schema.domains
-							WHERE domain_name = '$domain';";
-						$result = $this->db->sql_query($sql);
-						if (!$this->db->sql_fetchrow($result))
-						{
-							$this->db->sql_query($query);
-						}
-						$this->db->sql_freeresult($result);
-					}
-					else
-					{
-						$this->db->sql_query($query);
-					}
-
-					if (substr($query, 0, 4) == 'COPY')
-					{
-						while (($sub = $fgetd($fp, "\n", $read, $seek, $eof)) !== '\.')
-						{
-							if ($sub === false)
-							{
-								return false;
-							}
-							pg_put_line($this->db->get_db_connect_id(), $sub . "\n");
-						}
-						pg_put_line($this->db->get_db_connect_id(), "\\.\n");
-						pg_end_copy($this->db->get_db_connect_id());
-					}
-				}
-			break;
-
-			case 'oracle':
-				while (($sql = $fgetd($fp, "/\n", $read, $seek, $eof)) !== false)
-				{
-					$this->db->sql_query($sql);
-				}
-			break;
-
-			case 'mssql_odbc':
-			case 'mssqlnative':
-				while (($sql = $fgetd($fp, "GO\n", $read, $seek, $eof)) !== false)
-				{
-					$this->db->sql_query($sql);
-				}
-			break;
-		}
-
-		$close($fp);
-
-		// Purge the cache due to updated data
-		$this->cache->purge();
-
-		$this->logger->add('admin', $this->user->data['user_id'], $this->user->ip, 'LOG_DB_RESTORE');
 	}
 }

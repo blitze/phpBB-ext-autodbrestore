@@ -1,14 +1,19 @@
 services:
+    blitze.autodbrestore.db_restorer:
+        class: blitze\autodbrestore\services\db_restorer
+        arguments:
+            - '@dbal.conn'
+            - '%core.root_path%'
+            - '%core.php_ext%'
+
     blitze.autodbrestore.cron.task.restore:
         class: blitze\autodbrestore\cron\task\restore
         arguments:
             - '@cache.driver'
             - '@config'
-            - '@dbal.conn'
             - '@log'
             - '@user'
-            - '%core.root_path%'
-            - '%core.php_ext%'
+            - '@blitze.autodbrestore.db_restorer'
         calls:
             - [set_name, [blitze.autodbrestore.cron.task.restore]]
         tags:
