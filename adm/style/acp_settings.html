@@ -1,0 +1,45 @@
+{% include 'overall_header.html' %}
+
+<h1>{{ lang('ACP_AUTODBRESTORE') }}</h1>
+
+<form id="acp_board" method="post" action="{{ U_ACTION }}">
+
+	<fieldset>
+		<legend>{{ lang('SETTINGS') }}</legend>
+		<dl>
+			<dt><label for="file">{{ lang('SELECT_FILE') ~ lang('COLON') }}</label></dt>
+			<dd>
+				<select id="file" name="file" size="10">
+					{% for row in loops.files %}
+					<option value="{{ row.FILE }}"{% if row.FILE == DB_FILE %} selected="selected"{% endif %}>{{ row.NAME }}</option>
+					{% endfor %}
+				</select>
+				<a href="{{ U_CREATE_BACKUP }}">{{ lang('CREATE_NEW_BACKUP') }}</a>
+			</dd>
+		</dl>
+		<dl>
+			<dt><label for="frequency">{{ lang('SELECT_FREQUENCY') ~ lang('COLON') }}</label></dt>
+			<dd>
+				{%- set frequencies = [0, 15, 30, 60] -%}
+				{%- set custom = (FREQUENCY && FREQUENCY not in frequencies) ? FREQUENCY : '' -%}
+				<select id="frequency" name="frequency" data-togglable-settings="true">
+					{% for frequency in frequencies %}
+					<option value="{{ frequency }}"{% if frequency == FREQUENCY %} selected="selected"{% endif %}>{{ lang('RESTORE_FREQUENCY_' ~ frequency ) }}</option>
+					{% endfor %}
+					<option value=""{% if custom %} selected="selected"{% endif %} data-toggle-setting="#custom-frequency">{{ lang('RESTORE_CUSTOM') }}</option>
+				</select>
+				<div id="custom-frequency">
+					<input type="number" name="frequency" min="0" step="5" value="{{ custom }}" /> {{ lang('MINUTES') }}
+				</div>
+			</dd>
+		</dl>
+	</fieldset>
+
+	<fieldset class="submit-buttons">
+		<input class="button1" type="submit" id="submit" name="submit" value="{{ lang('SUBMIT') }}" />
+		{{ S_FORM_TOKEN }}
+	</fieldset>
+
+</form>
+
+{% include 'overall_footer.html' %}

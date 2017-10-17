@@ -1,0 +1,24 @@
+services:
+    blitze.autodbrestore.cron.task.restore:
+        class: blitze\autodbrestore\cron\task\restore
+        arguments:
+            - '@cache.driver'
+            - '@config'
+            - '@dbal.conn'
+            - '@log'
+            - '@user'
+            - '%core.root_path%'
+            - '%core.php_ext%'
+        calls:
+            - [set_name, [blitze.autodbrestore.cron.task.restore]]
+        tags:
+            - { name: cron.task }
+
+    blitze.autodbrestore.event.listener:
+        class: blitze\autodbrestore\event\listener
+        arguments:
+            - '@config'
+            - '@language'
+            - '@template'
+        tags:
+            - { name: event.listener }
