@@ -84,13 +84,13 @@ class restore_test extends \phpbb_database_test_case
 
 		$cache = new \phpbb_mock_cache();
 
+		$this->db = $this->new_dbal();
+
 		$config = new \phpbb\config\config(array(
 			'blitze_autodbrestore_cron_last_run' => 0,
 			'blitze_autodbrestore_file' => 'backup_1508169244_bd0498f98633ec67.sql',
 			'blitze_autodbrestore_frequency' => 15,
 		));
-
-		$this->db = $this->new_dbal();
 
 		$logger = $this->getMockBuilder('\phpbb\log\log')
 			->disableOriginalConstructor()
@@ -102,7 +102,8 @@ class restore_test extends \phpbb_database_test_case
 		$user = new \phpbb\user($language, '\phpbb\datetime');
 		$user->data['user_id'] = 2;
 
-		$db_restorer = new db_restorer($this->db, $phpbb_root_path, $phpEx, dirname(__FILE__) . '/fixtures/');
+		$layer = (in_array($this->db->get_sql_layer(), array('postgres', 'sqlite3'))) ? $layer : 'mysql';
+		$db_restorer = new db_restorer($this->db, $phpbb_root_path, $phpEx, dirname(__FILE__) . "/fixtures/$layer/");
 
 		$task = new restore($cache, $config, $logger, $user, $db_restorer);
 
@@ -126,6 +127,9 @@ class restore_test extends \phpbb_database_test_case
 		$this->assertEquals($this->task_name, $task->get_name());
 	}
 
+	/**
+	 * @return void
+	 */
 	public function test_restore()
 	{
 		$task = $this->create_cron_task();
@@ -149,6 +153,9 @@ class restore_test extends \phpbb_database_test_case
 		$this->assertFalse($task->should_run());
 	}
 
+	/**
+	 * @return int
+	 */
 	protected function get_data_count()
 	{
 		$result = $this->db->sql_query('SELECT COUNT(*) as total FROM phpbb_styles');
