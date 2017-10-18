@@ -15,14 +15,14 @@ class db_restorer
 	/** @var \phpbb\db\driver\driver_interface */
 	protected $db;
 
-	/** @var \phpbb\user */
-	protected $user;
-
 	/** @var string */
 	protected $phpbb_root_path;
 
 	/** @var string */
 	protected $php_ext;
+
+	/** @var string */
+	protected $db_file_path;
 
 	/** @var array */
 	private static $file_type_params = array(
