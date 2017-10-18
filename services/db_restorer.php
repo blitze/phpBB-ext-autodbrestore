@@ -87,17 +87,27 @@ class db_restorer
 			{
 				include($this->phpbb_root_path . 'includes/acp/acp_database.' . $this->php_ext);
 
-				$params = self::$file_type_params[$matches[1]];
-				$method = $this->db->get_sql_layer();
-
-				if (method_exists($this, $method))
-				{
-					$fp = $params['open']($file_name, $params['mode']);
-					$params['fp'] = $fp;
-					$this->$method($params);
-					$params['close']($fp);
-				}
+				$this->do_run($file_name, $matches[1]);
 			}
+		}
+	}
+
+	/**
+	 * @param string $file_name
+	 * @param string $file_type
+	 * @return void
+	 */
+	protected function do_run($file_name, $file_type)
+	{
+		$params = self::$file_type_params[$file_type];
+		$method = $this->db->get_sql_layer();
+
+		if (method_exists($this, $method))
+		{
+			$fp = $params['open']($file_name, $params['mode']);
+			$params['fp'] = $fp;
+			$this->$method($params);
+			$params['close']($fp);
 		}
 	}
 
@@ -158,7 +168,7 @@ class db_restorer
 	 * @param array $params
 	 * @return void
 	 */
-	protected function mysql_odbc(array $params)
+	protected function mssql_odbc(array $params)
 	{
 		extract($params);
 		while (($sql = $fgetd($fp, "GO\n", $read, $seek, $eof)) !== false)
@@ -226,7 +236,7 @@ class db_restorer
 	 * @param string $seek
 	 * @param string $eof
 	 * @param resource $fp
-	 * @return void
+	 * @return void|false
 	 */
 	protected function postgres_copy_data($query, $fgetd, $read, $seek, $eof, $fp)
 	{
