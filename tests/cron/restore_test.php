@@ -102,8 +102,9 @@ class restore_test extends \phpbb_database_test_case
 		$user = new \phpbb\user($language, '\phpbb\datetime');
 		$user->data['user_id'] = 2;
 
-		$layer = (in_array($this->db->get_sql_layer(), array('postgres', 'sqlite3'))) ? $layer : 'mysql';
-		$db_restorer = new db_restorer($this->db, $phpbb_root_path, $phpEx, dirname(__FILE__) . "/fixtures/$layer/");
+		$layer = $this->db->get_sql_layer();
+		$db_type = (in_array($layer, array('postgres', 'sqlite3'))) ? $layer : 'mysql';
+		$db_restorer = new db_restorer($this->db, $phpbb_root_path, $phpEx, dirname(__FILE__) . "/fixtures/$db_type/");
 
 		$task = new restore($cache, $config, $logger, $user, $db_restorer);
 
