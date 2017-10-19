@@ -85,8 +85,6 @@ class db_restorer
 
 			if (file_exists($file_name) && is_readable($file_name))
 			{
-				include($this->phpbb_root_path . 'includes/acp/acp_database.' . $this->php_ext);
-
 				$this->do_run($file_name, $matches[1]);
 			}
 		}
@@ -100,8 +98,15 @@ class db_restorer
 	protected function do_run($file_name, $file_type)
 	{
 		$params = self::$file_type_params[$file_type];
-		$method = $this->db->get_sql_layer();
 
+		// @codeCoverageIgnoreStart
+		if (!function_exists($params['fgetd']))
+		{
+			include($this->phpbb_root_path . 'includes/acp/acp_database.' . $this->php_ext);
+		}
+		// @codeCoverageIgnoreEnd
+
+		$method = $this->db->get_sql_layer();
 		if (method_exists($this, $method))
 		{
 			$fp = $params['open']($file_name, $params['mode']);
