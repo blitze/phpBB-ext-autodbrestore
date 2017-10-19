@@ -109,7 +109,7 @@ class main_module
 	 */
 	protected function check_form_key($form_name)
 	{
-		if (!$this->check_form_key($form_name))
+		if (!check_form_key($form_name))
 		{
 			$this->trigger_error('FORM_INVALID', E_USER_WARNING);
 		}
