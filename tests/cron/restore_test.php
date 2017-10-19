@@ -159,7 +159,7 @@ class restore_test extends \phpbb_database_test_case
 	 */
 	protected function get_data_count()
 	{
-		$result = $this->db->sql_query('SELECT COUNT(*) as total FROM phpbb_styles');
+		$result = $this->db->sql_query('SELECT COUNT(*) as total FROM phpbb_smilies');
 		$total = $this->db->sql_fetchfield('total');
 		$this->db->sql_freeresult($result);
 

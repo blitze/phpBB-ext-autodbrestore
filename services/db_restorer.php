@@ -127,6 +127,7 @@ class db_restorer
 	/**
 	 * @param array $params
 	 * @return void
+	 * @codeCoverageIgnore
 	 */
 	protected function mysql4(array $params)
 	{
@@ -154,6 +155,7 @@ class db_restorer
 	/**
 	 * @param array $params
 	 * @return void
+	 * @codeCoverageIgnore
 	 */
 	protected function oracle(array $params)
 	{
@@ -167,6 +169,7 @@ class db_restorer
 	/**
 	 * @param array $params
 	 * @return void
+	 * @codeCoverageIgnore
 	 */
 	protected function mssql_odbc(array $params)
 	{
@@ -180,6 +183,7 @@ class db_restorer
 	/**
 	 * @param array $params
 	 * @return void
+	 * @codeCoverageIgnore
 	 */
 	protected function mssqlnative(array $params)
 	{
