@@ -45,6 +45,7 @@ class listener implements EventSubscriberInterface
 		return array(
 			'core.user_setup'		=> 'load_common_language',
 			'core.page_header'		=> 'show_notice',
+			'core.adm_page_header'	=> 'show_notice',
 		);
 	}
 
@@ -67,9 +68,13 @@ class listener implements EventSubscriberInterface
 	 */
 	public function show_notice()
 	{
-		$this->template->assign_vars(array(
-			'AUTO_DB_RESTORE'			=> $this->config->is_ready(),
-			'AUTO_DB_RESTORE_NOTICE'	=> $this->language->lang('AUTODBRESTORE_NOTICE', $this->config->get('restore_frequency')),
-		));
+		if ($this->config->is_ready())
+		{
+			$this->template->assign_vars(array(
+				'AUTODBRESTORE_FREQUENCY'	=> $this->config->get('restore_frequency'),
+				'AUTODBRESTORE_LASTRUN'		=> $this->config->get('cron_last_run'),
+				'AUTODBRESTORE_NOTICE'		=> $this->language->lang('AUTODBRESTORE_NOTICE', $this->config->get('restore_frequency')),
+			));
+		}
 	}
 }

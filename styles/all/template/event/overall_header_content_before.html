@@ -1,8 +1,17 @@
-{% if AUTO_DB_RESTORE %}
-<div class="rules">
+{% if AUTODBRESTORE_NOTICE %}
+{% INCLUDEJS '@blitze_autodbrestore/countdown.js' %}
+<div class="rules" style="position: relative; overflow: hidden">
+	<div id="autodbrestore-progress" class="bg2" style="position: absolute; top: 0; left: 0; bottom: 0; opacity: 0.6;"></div>
 	<div class="inner">
-		<i class="fa fa-exclamation-circle fa-2x" aria-hidden="true"></i>
-		{{ AUTO_DB_RESTORE_NOTICE }}
+		<i class="fa fa-exclamation-circle" aria-hidden="true"></i>
+		{{ AUTODBRESTORE_NOTICE }}
 	</div>
 </div>
+
+<script type="text/javascript">
+// <![CDATA[
+	var autodbrestore_frequency = {{ AUTODBRESTORE_FREQUENCY|e('js') }};
+	var autodbrestore_lastrun = {{ AUTODBRESTORE_LASTRUN|e('js') }};
+// ]]>
+</script>
 {% endif %}

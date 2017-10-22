@@ -47,8 +47,14 @@ class listener_test extends \phpbb_test_case
 
 		$filesystem = new \phpbb\filesystem\filesystem();
 
-		$lang_loader = new \phpbb\language\language_file_loader($phpbb_root_path, $phpEx);
-		$language = new \phpbb\language\language($lang_loader);
+		$language = $this->getMockBuilder('\phpbb\language\language')
+			->disableOriginalConstructor()
+			->getMock();
+		$language->expects($this->any())
+			->method('lang')
+			->willReturnCallback(function () {
+				return implode('-', func_get_args());
+			});
 
 		$tpl_data = array();
 		$template = $this->getMockBuilder('\phpbb\template\template')
@@ -84,6 +90,7 @@ class listener_test extends \phpbb_test_case
 		$listeners = array(
 			'core.user_setup',
 			'core.page_header',
+			'core.adm_page_header',
 		);
 
 		$this->assertEquals($listeners, array_keys(\blitze\autodbrestore\event\listener::getSubscribedEvents()));
@@ -161,19 +168,26 @@ class listener_test extends \phpbb_test_case
 		return array(
 			array(
 				array(),
+				array(),
+			),
+			array(
 				array(
-					'AUTO_DB_RESTORE'			=> false,
-					'AUTO_DB_RESTORE_NOTICE'	=> 'AUTODBRESTORE_NOTICE',
+					'backup_file' => '',
+					'restore_frequency' => 60,
+					'cron_last_run' => 0,
 				),
+				array(),
 			),
 			array(
 				array(
 					'backup_file' => 'backup.sql',
 					'restore_frequency' => 15,
+					'cron_last_run' => 123456789,
 				),
 				array(
-					'AUTO_DB_RESTORE'			=> true,
-					'AUTO_DB_RESTORE_NOTICE'	=> 'AUTODBRESTORE_NOTICE',
+					'AUTODBRESTORE_FREQUENCY'	=> 15,
+					'AUTODBRESTORE_LASTRUN'		=> 123456789,
+					'AUTODBRESTORE_NOTICE'		=> 'AUTODBRESTORE_NOTICE-15',
 				),
 			),
 		);
