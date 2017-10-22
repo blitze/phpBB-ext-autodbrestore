@@ -18,31 +18,31 @@ class restore extends \phpbb\cron\task\base
 	/** @var \phpbb\cache\driver\driver_interface */
 	protected $cache;
 
-	/** @var \phpbb\config\config */
-	protected $config;
-
 	/** @var \phpbb\user */
 	protected $user;
 
-	/** @var \blitze\autodbrestore\services\db_restorer */
-	protected $db_restorer;
+	/** @var \blitze\autodbrestore\services\config */
+	protected $config;
+
+	/** @var \blitze\autodbrestore\services\restorer */
+	protected $restorer;
 
 	/**
 	 * Constructor
 	 *
-	 * @param \phpbb\cache\driver\driver_interface			$cache				Cache driver interface
-	 * @param \phpbb\config\config							$config				Config object
-	 * @param \phpbb\log\log_interface						$logger				phpBB logger
-	 * @param \phpbb\user									$user				User object
-	 * @param \blitze\autodbrestore\services\db_restorer	$db_restorer		Restores db to specified file
+	 * @param \phpbb\cache\driver\driver_interface			$cache			Cache driver interface
+	 * @param \phpbb\log\log_interface						$logger			phpBB logger
+	 * @param \phpbb\user									$user			User object
+	 * @param \blitze\autodbrestore\services\config			$config			Autodbrestore config object
+	 * @param \blitze\autodbrestore\services\restorer		$restorer		Restores db to specified file
 	 */
-	public function __construct(\phpbb\cache\driver\driver_interface $cache, \phpbb\config\config $config, \phpbb\log\log_interface $logger, \phpbb\user $user, \blitze\autodbrestore\services\db_restorer $db_restorer)
+	public function __construct(\phpbb\cache\driver\driver_interface $cache, \phpbb\log\log_interface $logger, \phpbb\user $user, \blitze\autodbrestore\services\config $config, \blitze\autodbrestore\services\restorer $restorer)
 	{
 		$this->cache = $cache;
-		$this->config = $config;
 		$this->logger = $logger;
 		$this->user = $user;
-		$this->db_restorer = $db_restorer;
+		$this->config = $config;
+		$this->restorer = $restorer;
 	}
 
 	/**
@@ -53,7 +53,7 @@ class restore extends \phpbb\cron\task\base
 	public function run()
 	{
 		// Run your cron actions here...
-		$this->db_restorer->run($this->config['blitze_autodbrestore_file']);
+		$this->restorer->run($this->config->get('backup_file'));
 
 		// Purge the cache due to updated data
 		$this->cache->purge();
@@ -62,7 +62,9 @@ class restore extends \phpbb\cron\task\base
 
 		// Update the cron task run time here if it hasn't
 		// already been done by your cron actions.
-		$this->config->set('blitze_autodbrestore_cron_last_run', time(), false);
+		$this->config->save(array(
+			'cron_last_run' => time(),
+		));
 	}
 
 	/**
@@ -75,7 +77,7 @@ class restore extends \phpbb\cron\task\base
 	 */
 	public function is_runnable()
 	{
-		return !empty($this->config['blitze_autodbrestore_file']) && $this->config['blitze_autodbrestore_frequency'];
+		return $this->config->is_ready();
 	}
 
 	/**
@@ -86,6 +88,6 @@ class restore extends \phpbb\cron\task\base
 	 */
 	public function should_run()
 	{
-		return $this->config['blitze_autodbrestore_cron_last_run'] < time() - ($this->config['blitze_autodbrestore_frequency'] * 60);
+		return $this->config->get('cron_last_run') < time() - ($this->config->get('restore_frequency') * 60);
 	}
 }

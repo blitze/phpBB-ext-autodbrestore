@@ -19,5 +19,5 @@ if (empty($lang) || !is_array($lang))
 }
 
 $lang = array_merge($lang, array(
-	'AUTODBRESTORE_NOTICE'		=> 'This site will automatically reset every %s minutes!',
+	'AUTODBRESTORE_NOTICE'		=> 'This site will automatically reset parts or all of its data every %s minutes!',
 ));

@@ -10,7 +10,11 @@
 
 namespace blitze\autodbrestore\services;
 
-class db_restorer
+/**
+ * Auto Database Restore database restorer.
+ * This is essentially a refactored version of some parts of include/acp/acp_database.php
+ */
+class restorer
 {
 	/** @var \phpbb\db\driver\driver_interface */
 	protected $db;

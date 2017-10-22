@@ -1,6 +1,13 @@
 services:
-    blitze.autodbrestore.db_restorer:
-        class: blitze\autodbrestore\services\db_restorer
+    blitze.autodbrestore.config:
+        class: blitze\autodbrestore\services\config
+        arguments:
+            - '@filesystem'
+            - '%core.root_path%'
+            - '%core.root_path%ext/blitze/autodbrestore/config.%core.php_ext%'
+
+    blitze.autodbrestore.restorer:
+        class: blitze\autodbrestore\services\restorer
         arguments:
             - '@dbal.conn'
             - '%core.root_path%'
@@ -10,10 +17,10 @@ services:
         class: blitze\autodbrestore\cron\task\restore
         arguments:
             - '@cache.driver'
-            - '@config'
             - '@log'
             - '@user'
-            - '@blitze.autodbrestore.db_restorer'
+            - '@blitze.autodbrestore.config'
+            - '@blitze.autodbrestore.restorer'
         calls:
             - [set_name, [blitze.autodbrestore.cron.task.restore]]
         tags:
@@ -22,8 +29,8 @@ services:
     blitze.autodbrestore.event.listener:
         class: blitze\autodbrestore\event\listener
         arguments:
-            - '@config'
             - '@language'
             - '@template'
+            - '@blitze.autodbrestore.config'
         tags:
             - { name: event.listener }

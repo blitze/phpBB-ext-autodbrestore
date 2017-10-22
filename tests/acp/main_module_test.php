@@ -16,12 +16,13 @@ require_once dirname(__FILE__) . '../../../../../../includes/functions_acp.php';
 
 class main_module_test extends \phpbb_database_test_case
 {
-	protected $config;
 	protected $template;
+	protected $user;
+	protected $config_file;
 
 	static public function setUpBeforeClass()
 	{
-		global $phpbb_root_path;
+		global $phpbb_root_path, $phpEx;
 
 		parent::setUpBeforeClass();
 
@@ -32,13 +33,14 @@ class main_module_test extends \phpbb_database_test_case
 
 	static public function tearDownAfterClass()
 	{
-		global $phpbb_root_path;
+		global $phpbb_root_path, $phpEx;
 
 		parent::tearDownAfterClass();
 
 		$fs = new \phpbb\filesystem\filesystem();
 		$fs->remove($phpbb_root_path . 'store');
 		$fs->rename($phpbb_root_path . 'store.temp', $phpbb_root_path . 'store');
+		$fs->remove($phpbb_root_path . 'ext/blitze/autodbrestore/tests/acp/fixtures/config.' . $phpEx);
 	}
 
 	/**
@@ -65,11 +67,10 @@ class main_module_test extends \phpbb_database_test_case
 	 * Get the main_module object
 	 *
 	 * @param array $variable_map
-	 * @param array $db_text
 	 * @param bool $submitted
 	 * @return \blitze\autodbrestore\acp\main_module
 	 */
-	public function get_module(array $variable_map, array $db_text = array(), $submitted = false)
+	public function get_module(array $variable_map, $submitted = false)
 	{
 		global $config, $db, $request, $template, $user, $phpbb_container, $phpbb_dispatcher, $phpbb_admin_path, $phpbb_root_path, $phpEx;
 
@@ -77,21 +78,17 @@ class main_module_test extends \phpbb_database_test_case
 
 		$phpbb_dispatcher = new \phpbb_mock_event_dispatcher();
 
-		$phpbb_container = new \phpbb_mock_container_builder();
-		$factory = new \phpbb\db\tools\factory();
-		$phpbb_container->set('dbal.tools', $factory->get($db));
+		$config = new \phpbb\config\config(array(
+			'form_token_lifetime' => -1,
+		));
 
 		$lang_loader = new \phpbb\language\language_file_loader($phpbb_root_path, $phpEx);
 		$language = new \phpbb\language\language($lang_loader);
 
 		$user = new \phpbb\user($language, '\phpbb\datetime');
 		$user->timezone = new \DateTimeZone('UTC');
-
-		$config = new \phpbb\config\config(array(
-			'blitze_autodbrestore_file' => 'backup_1508169244_bd0498f98633ec67.sql',
-			'blitze_autodbrestore_frequency' => 60,
-		));
-		$this->config = &$config;
+		$user->data['user_id'] = 2;
+		$this->user = &$user;
 
 		$request = $this->getMock('\phpbb\request\request_interface');
 		$request->expects($this->any())
@@ -100,7 +97,11 @@ class main_module_test extends \phpbb_database_test_case
 			->will($this->returnValueMap($variable_map));
 		$request->expects($this->any())
 			->method('is_set_post')
-			->willReturn($submitted);
+			->will($this->returnValueMap(array(
+				array('submit', $submitted),
+				array('form_token', true),
+				array('creation_time', true),
+			)));
 
 		$tpl_data = array();
 		$template = $this->getMockBuilder('\phpbb\template\template')
@@ -122,19 +123,24 @@ class main_module_test extends \phpbb_database_test_case
 			}));
 		$this->template =& $template;
 
-		$module = $this->getMock('\blitze\autodbrestore\acp\main_module', array(
-			'check_form_key',
-			'trigger_error',
+		$phpbb_container = new \phpbb_mock_container_builder();
+
+		$factory = new \phpbb\db\tools\factory();
+		$filesystem = new \phpbb\filesystem\filesystem();
+
+		$this->config_file = __DIR__ . '/fixtures/config.' . $phpEx;
+		$autodbrestore_config = new \blitze\autodbrestore\services\config($filesystem, $phpbb_root_path, $this->config_file);
+
+		$autodbrestore_config->set_settings(array(
+			'backup_file' => 'backup_1508169244_bd0498f98633ec67.sql',
+			'restore_frequency' => 60,
+			'cron_last_run' => 123456789,
 		));
 
-		$module->expects($this->any())
-			->method('trigger_error')
-			->willReturn('false');
-		$module->expects($this->any())
-			->method('check_form_key')
-			->willReturn('true');
+		$phpbb_container->set('dbal.tools', $factory->get($db));
+		$phpbb_container->set('blitze.autodbrestore.config', $autodbrestore_config);
 
-		return $module;
+		return new \blitze\autodbrestore\acp\main_module();
 	}
 
 	/**
@@ -144,47 +150,83 @@ class main_module_test extends \phpbb_database_test_case
 	public function test_module()
 	{
 		$module = $this->get_module(array());
-
+		$module->u_action = 'u_action';
 		$module->main();
 
-		$result = $this->template->assign_display('settings');
-		unset($result['U_ACTION']);
-
-		$this->assertEquals($result, array(
+		$this->assertEquals(array(
 			'MODE' => 'restore',
 			'files'	=> array(array(
 				'FILE' => 'backup_1508169244_bd0498f98633ec67.sql',
 				'NAME' => '16-10-2017 15:54:04',
 				'SUPPORTED' => 1,
 			)),
-			'DB_FILE' => 'backup_1508169244_bd0498f98633ec67.sql',
-			'FREQUENCY' => 60,
+			'CONFIG' => array(
+				'backup_file' => 'backup_1508169244_bd0498f98633ec67.sql',
+				'restore_frequency' => 60,
+				'cron_last_run' => 123456789,
+			),
+			'U_ACTION' => 'u_action',
 			'U_CREATE_BACKUP' => 'index.php?i=acp_database&amp;mode=backup',
-		));
+		), $this->template->assign_display('settings'));
+	}
+
+	/**
+	 * @return array
+	 */
+	public function save_settings_test_data() {
+		return array(
+			array(
+				array(
+					array('file', '', false, request_interface::REQUEST, 'new_backup_file.sql'),
+					array('frequency', 0, false, request_interface::REQUEST, 25),
+					array('form_token', '', false, \phpbb\request\request_interface::REQUEST, sha1(0 . 'blitze/autodbrestore')),
+					array('creation_time', 0, false, \phpbb\request\request_interface::REQUEST, 0),
+				),
+				array(
+					'backup_file' => 'new_backup_file.sql',
+					'restore_frequency' => 25,
+					'cron_last_run' => 123456789,
+				),
+				E_USER_NOTICE,
+				'ACP_SETTING_SAVED',
+			),
+			array(
+				array(
+					array('file', '', false, request_interface::REQUEST, 'new_backup_file.sql'),
+					array('frequency', 0, false, request_interface::REQUEST, 25),
+				),
+				array(
+					'backup_file' => 'backup_1507249280_586447177a42ff9d.sql.gz',
+					'restore_frequency' => 60,
+					'cron_last_run' => 123456789,
+				),
+				E_USER_WARNING,
+				'FORM_INVALID',
+			),
+		);
 	}
 
 	/**
 	 * Test save settings
+	 * @param array $variable_map
+	 * @param array $expected_config
+	 * @param string $error
+	 * @param string $message
+	 * @dataProvider save_settings_test_data
 	 */
-	public function test_save_settings()
+	public function test_save_settings($variable_map, $expected_config, $error, $message)
 	{
-		$expected_file = 'new_backup_file.sql';
-		$expected_frequency = 25;
+		$module = $this->get_module($variable_map, true);
 
-		$variable_map = array(
-			array('file', '', false, request_interface::REQUEST, $expected_file),
-			array('frequency', 0, false, request_interface::REQUEST, $expected_frequency),
-		);
+		$this->setExpectedTriggerError($error, $message);
 
-		$module = $this->get_module($variable_map, array(), true);
 		$reflection = new \ReflectionClass($module);
 		$method = $reflection->getMethod('save_settings');
 		$method->setAccessible(true);
 
-		$parameters = array('form_key');
+		$parameters = array('blitze/autodbrestore');
 		$method->invokeArgs($module, $parameters);
 
-		$this->assertEquals($expected_file, $this->config['blitze_autodbrestore_file']);
-		$this->assertEquals($expected_frequency, $this->config['blitze_autodbrestore_frequency']);
+		$this->assertEquals($expected_config, include($this->config_file));
 	}
 }

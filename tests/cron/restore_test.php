@@ -10,7 +10,7 @@
 
 namespace blitze\autodbrestore\tests\cron;
 
-use blitze\autodbrestore\services\db_restorer;
+use blitze\autodbrestore\services\restorer;
 use blitze\autodbrestore\cron\task\restore;
 
 class restore_test extends \phpbb_database_test_case
@@ -35,12 +35,30 @@ class restore_test extends \phpbb_database_test_case
 	 */
 	public function getDataSet()
 	{
-		return $this->createXMLDataSet(dirname(__FILE__) . '/fixtures/styles.xml');
+		return $this->createXMLDataSet(dirname(__FILE__) . '/fixtures/smilies.xml');
 	}
 
-	protected function create_cron_manager($tasks)
+	/**
+	 * the autodbrestore config.php file auto generated
+	 * we remove it after the tests are completed
+	 */
+	static public function tearDownAfterClass()
 	{
 		global $phpbb_root_path, $phpEx;
+
+		parent::tearDownAfterClass();
+
+		$fs = new \phpbb\filesystem\filesystem();
+		$fs->remove($phpbb_root_path . 'ext/blitze/autodbrestore/tests/cron/fixtures/config.' . $phpEx);
+	}
+
+	/**
+	 * Create the cron manager
+	 *
+	 * @return \phpbb\cron\manager
+	 */
+	protected function create_cron_manager($tasks)
+	{
 		global $phpbb_root_path, $phpEx;
 
 		$mock_config = new \phpbb\config\config(array(
@@ -86,11 +104,7 @@ class restore_test extends \phpbb_database_test_case
 
 		$this->db = $this->new_dbal();
 
-		$config = new \phpbb\config\config(array(
-			'blitze_autodbrestore_cron_last_run' => 0,
-			'blitze_autodbrestore_file' => 'backup_1508169244_bd0498f98633ec67.sql',
-			'blitze_autodbrestore_frequency' => 15,
-		));
+		$filesystem = new \phpbb\filesystem\filesystem();
 
 		$logger = $this->getMockBuilder('\phpbb\log\log')
 			->disableOriginalConstructor()
@@ -104,9 +118,18 @@ class restore_test extends \phpbb_database_test_case
 
 		$layer = $this->db->get_sql_layer();
 		$db_type = (in_array($layer, array('postgres', 'sqlite3'))) ? $layer : 'mysql';
-		$db_restorer = new db_restorer($this->db, $phpbb_root_path, $phpEx, dirname(__FILE__) . "/fixtures/$db_type/");
+		$restorer = new restorer($this->db, $phpbb_root_path, $phpEx, dirname(__FILE__) . "/fixtures/$db_type/");
 
-		$task = new restore($cache, $config, $logger, $user, $db_restorer);
+		$this->config_file = __DIR__ . '/fixtures/config.' . $phpEx;
+		$autodbrestore_config = new \blitze\autodbrestore\services\config($filesystem, $phpbb_root_path, $this->config_file);
+
+		$autodbrestore_config->set_settings(array(
+			'backup_file' => 'backup_1508169244_bd0498f98633ec67.sql',
+			'restore_frequency' => 60,
+			'cron_last_run' => 0,
+		));
+
+		$task = new restore($cache, $logger, $user, $autodbrestore_config, $restorer);
 
 		// this is normally called automatically in the yaml service config
 		// but we have to do it manually here
@@ -120,8 +143,8 @@ class restore_test extends \phpbb_database_test_case
 	 */
 	public function test_that_cron_task_is_discoverable()
 	{
-		$db_restore_task = $this->create_cron_task();
-		$cron_manager = $this->create_cron_manager(array($db_restore_task));
+		$restore_task = $this->create_cron_task();
+		$cron_manager = $this->create_cron_manager(array($restore_task));
 
 		$task = $cron_manager->find_task($this->task_name);
 		$this->assertInstanceOf('\phpbb\cron\task\wrapper', $task);
@@ -144,11 +167,19 @@ class restore_test extends \phpbb_database_test_case
 		// initial database state
 		$this->assertEquals(0, $this->get_data_count());
 
+		// initial config state
+		$config = include($this->config_file);
+		$this->assertEquals(0, $config['cron_last_run']);
+
 		// run the task
 		$task->run();
 
 		// After run cron trask, we should now have 1 user
 		$this->assertEquals(1, $this->get_data_count());
+
+		// config file should now be updated with new last run time
+		$config = include($this->config_file);
+		$this->assertNotEquals(0, $config['cron_last_run']);
 
 		// after successful run, the task should not be ready to run again until enough time has elapsed
 		$this->assertFalse($task->should_run());

@@ -16,17 +16,36 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class listener_test extends \phpbb_test_case
 {
+	/** @var \blitze\autodbrestore\services\config */
+	protected $config;
+
+	/** @var array */
+	protected $tpl_data;
+
 	/**
-	 * Create the listener object
-	 *
-	 * @param array $config_data
-	 * @return \blitze\autodbrestore\event\listener
+	 * the autodbrestore config.php file auto generated
+	 * we remove it after the tests are completed
 	 */
-	protected function get_listener(array $config_data = array())
+	static public function tearDownAfterClass()
 	{
 		global $phpbb_root_path, $phpEx;
 
-		$config = new \phpbb\config\config($config_data);
+		parent::tearDownAfterClass();
+
+		$fs = new \phpbb\filesystem\filesystem();
+		$fs->remove($phpbb_root_path . 'ext/blitze/autodbrestore/tests/event/config.' . $phpEx);
+	}
+
+	/**
+	 * Create the listener object
+	 *
+	 * @return \blitze\autodbrestore\event\listener
+	 */
+	protected function get_listener()
+	{
+		global $phpbb_root_path, $phpEx;
+
+		$filesystem = new \phpbb\filesystem\filesystem();
 
 		$lang_loader = new \phpbb\language\language_file_loader($phpbb_root_path, $phpEx);
 		$language = new \phpbb\language\language($lang_loader);
@@ -42,7 +61,10 @@ class listener_test extends \phpbb_test_case
 				$tpl_data = $data;
 			}));
 
-		return new \blitze\autodbrestore\event\listener($config, $language, $template);
+		$config_file = __DIR__ . '/config.' . $phpEx;
+		$this->config = new \blitze\autodbrestore\services\config($filesystem, $phpbb_root_path, $config_file);
+
+		return new \blitze\autodbrestore\event\listener($language, $template, $this->config);
 	}
 
 	/**
@@ -130,7 +152,7 @@ class listener_test extends \phpbb_test_case
 	}
 
 	/**
-	 * Data set for test_add_permissions
+	 * Data set for test_show_notice
 	 *
 	 * @return array
 	 */
@@ -146,8 +168,8 @@ class listener_test extends \phpbb_test_case
 			),
 			array(
 				array(
-					'blitze_autodbrestore_file' => 'backup.sql',
-					'blitze_autodbrestore_frequency' => 15,
+					'backup_file' => 'backup.sql',
+					'restore_frequency' => 15,
 				),
 				array(
 					'AUTO_DB_RESTORE'			=> true,
@@ -166,7 +188,10 @@ class listener_test extends \phpbb_test_case
 	 */
 	public function test_show_notice(array $config_data, array $expected)
 	{
-		$listener = $this->get_listener($config_data);
+		$listener = $this->get_listener();
+
+		$this->config->set_settings($config_data);
+
 		$listener->show_notice();
 
 		$this->assertSame($expected, $this->tpl_data);

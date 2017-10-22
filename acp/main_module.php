@@ -15,9 +15,6 @@ namespace blitze\autodbrestore\acp;
  */
 class main_module
 {
-	/** @var \phpbb\config\config */
-	protected $config;
-
 	/** @var \phpbb\request\request_interface */
 	protected $request;
 
@@ -26,6 +23,9 @@ class main_module
 
 	/** @var \phpbb\user */
 	protected $user;
+
+	/** @var \blitze\autodbrestore\services\config */
+	protected $config;
 
 	/** @var string phpBB admin path */
 	protected $phpbb_admin_path;
@@ -50,12 +50,12 @@ class main_module
 	 */
 	public function __construct()
 	{
-		global $config, $request, $template, $user, $phpbb_admin_path, $phpbb_root_path, $phpEx;
+		global $request, $template, $user, $phpbb_container, $phpbb_admin_path, $phpbb_root_path, $phpEx;
 
-		$this->config = $config;
 		$this->request = $request;
 		$this->template = $template;
 		$this->user = $user;
+		$this->config = $phpbb_container->get('blitze.autodbrestore.config');
 		$this->phpbb_admin_path = $phpbb_admin_path;
 		$this->phpbb_root_path = $phpbb_root_path;
 		$this->php_ext = $phpEx;
@@ -70,6 +70,7 @@ class main_module
 		$this->page_title = 'ACP_TITLE';
 
 		$form_name = 'blitze/autodbrestore';
+
 		$this->save_settings($form_name);
 
 		include($this->phpbb_root_path . 'includes/acp/acp_database.' . $this->php_ext);
@@ -80,8 +81,7 @@ class main_module
 		add_form_key($form_name);
 
 		$this->template->assign_vars(array(
-			'DB_FILE'			=> $this->config['blitze_autodbrestore_file'],
-			'FREQUENCY'			=> $this->config['blitze_autodbrestore_frequency'],
+			'CONFIG'			=> $this->config->get_settings(),
 			'U_ACTION'			=> $this->u_action,
 			'U_CREATE_BACKUP'	=> append_sid("{$this->phpbb_admin_path}index." . $this->php_ext, 'i=acp_database&amp;mode=backup'),
 		));
@@ -95,33 +95,17 @@ class main_module
 	{
 		if ($this->request->is_set_post('submit'))
 		{
-			$this->check_form_key($form_name);
+			if (!check_form_key($form_name))
+			{
+				trigger_error('FORM_INVALID', E_USER_WARNING);
+			}
 
-			$this->config->set('blitze_autodbrestore_file', $this->request->variable('file', ''));
-			$this->config->set('blitze_autodbrestore_frequency', $this->request->variable('frequency', 0));
+			$this->config->save(array(
+				'backup_file'		=> $this->request->variable('file', ''),
+				'restore_frequency'	=> $this->request->variable('frequency', 0),
+			));
 
-			$this->trigger_error($this->user->lang('ACP_SETTING_SAVED') . adm_back_link($this->u_action));
+			trigger_error($this->user->lang('ACP_SETTING_SAVED') . adm_back_link($this->u_action));
 		}
-	}
-
-	/**
-	 * @param string $form_name
-	 */
-	protected function check_form_key($form_name)
-	{
-		if (!check_form_key($form_name))
-		{
-			$this->trigger_error('FORM_INVALID', E_USER_WARNING);
-		}
-	}
-
-	/**
-	 * @param string $message
-	 * @param int $error_type
-	 * @return void
-	 */
-	protected function trigger_error($message, $error_type = E_USER_NOTICE)
-	{
-		trigger_error($message, $error_type);
 	}
 }

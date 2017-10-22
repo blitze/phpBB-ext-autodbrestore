@@ -14,27 +14,27 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class listener implements EventSubscriberInterface
 {
-	/** @var \phpbb\config\config */
-	protected $config;
-
 	/** @var \phpbb\language\language */
 	protected $language;
 
 	/** @var \phpbb\template\template */
 	protected $template;
 
+	/** @var \blitze\autodbrestore\services\config */
+	protected $config;
+
 	/**
 	 * Constructor
 	 *
-	 * @param \phpbb\config\config			$config			Config object
-	 * @param \phpbb\language\language		$language		Language object
-	 * @param \phpbb\template\template		$template		Template object
+	 * @param \phpbb\language\language					$language		Language object
+	 * @param \phpbb\template\template					$template		Template object
+	 * @param \blitze\autodbrestore\services\config		$config			Autodbrestore config object
 	 */
-	public function __construct(\phpbb\config\config $config, \phpbb\language\language $language, \phpbb\template\template $template)
+	public function __construct(\phpbb\language\language $language, \phpbb\template\template $template, \blitze\autodbrestore\services\config $config)
 	{
-		$this->config = $config;
 		$this->language = $language;
 		$this->template = $template;
+		$this->config = $config;
 	}
 
 	/**
@@ -68,16 +68,8 @@ class listener implements EventSubscriberInterface
 	public function show_notice()
 	{
 		$this->template->assign_vars(array(
-			'AUTO_DB_RESTORE'			=> $this->is_enabled(),
-			'AUTO_DB_RESTORE_NOTICE'	=> $this->language->lang('AUTODBRESTORE_NOTICE', $this->config['blitze_autodbrestore_frequency']),
+			'AUTO_DB_RESTORE'			=> $this->config->is_ready(),
+			'AUTO_DB_RESTORE_NOTICE'	=> $this->language->lang('AUTODBRESTORE_NOTICE', $this->config->get('restore_frequency')),
 		));
-	}
-
-	/**
-	 * @return bool
-	 */
-	protected function is_enabled()
-	{
-		return ($this->config['blitze_autodbrestore_file'] && $this->config['blitze_autodbrestore_frequency']);
 	}
 }

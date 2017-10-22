@@ -12,22 +12,14 @@ namespace blitze\autodbrestore\migrations;
 
 class install_acp_module extends \phpbb\db\migration\migration
 {
-	public function effectively_installed()
-	{
-		//return isset($this->config['blitze_autodbrestore_frequency']);
-	}
-
 	static public function depends_on()
 	{
-		return array('\phpbb\db\migration\data\v31x\v314');
+		return array('\phpbb\db\migration\data\v32x\v321');
 	}
 
 	public function update_data()
 	{
 		return array(
-			array('config.add', array('blitze_autodbrestore_file', '')),
-			array('config.add', array('blitze_autodbrestore_frequency', 60)),
-
 			array('module.add', array(
 				'acp',
 				'ACP_CAT_DOT_MODS',
