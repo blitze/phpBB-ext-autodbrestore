@@ -20,21 +20,21 @@ class listener implements EventSubscriberInterface
 	/** @var \phpbb\template\template */
 	protected $template;
 
-	/** @var \blitze\autodbrestore\services\config */
-	protected $config;
+	/** @var \blitze\autodbrestore\services\settings */
+	protected $settings;
 
 	/**
 	 * Constructor
 	 *
 	 * @param \phpbb\language\language					$language		Language object
 	 * @param \phpbb\template\template					$template		Template object
-	 * @param \blitze\autodbrestore\services\config		$config			Autodbrestore config object
+	 * @param \blitze\autodbrestore\services\settings	$settings		Autodbrestore settings object
 	 */
-	public function __construct(\phpbb\language\language $language, \phpbb\template\template $template, \blitze\autodbrestore\services\config $config)
+	public function __construct(\phpbb\language\language $language, \phpbb\template\template $template, \blitze\autodbrestore\services\settings $settings)
 	{
 		$this->language = $language;
 		$this->template = $template;
-		$this->config = $config;
+		$this->settings = $settings;
 	}
 
 	/**
@@ -68,12 +68,12 @@ class listener implements EventSubscriberInterface
 	 */
 	public function show_notice()
 	{
-		if ($this->config->is_ready())
+		if ($this->settings->is_ready())
 		{
 			$this->template->assign_vars(array(
-				'AUTODBRESTORE_FREQUENCY'	=> $this->config->get('restore_frequency'),
-				'AUTODBRESTORE_LASTRUN'		=> $this->config->get('cron_last_run'),
-				'AUTODBRESTORE_NOTICE'		=> $this->language->lang('AUTODBRESTORE_NOTICE', $this->config->get('restore_frequency')),
+				'AUTODBRESTORE_FREQUENCY'	=> $this->settings->get('restore_frequency'),
+				'AUTODBRESTORE_LASTRUN'		=> $this->settings->get('cron_last_run'),
+				'AUTODBRESTORE_NOTICE'		=> $this->language->lang('AUTODBRESTORE_NOTICE', $this->settings->get('restore_frequency')),
 			));
 		}
 	}

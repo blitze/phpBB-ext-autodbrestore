@@ -16,8 +16,8 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class listener_test extends \phpbb_test_case
 {
-	/** @var \blitze\autodbrestore\services\config */
-	protected $config;
+	/** @var \blitze\autodbrestore\services\settings */
+	protected $settings;
 
 	/** @var array */
 	protected $tpl_data;
@@ -68,9 +68,9 @@ class listener_test extends \phpbb_test_case
 			}));
 
 		$config_file = __DIR__ . '/config.' . $phpEx;
-		$this->config = new \blitze\autodbrestore\services\config($filesystem, $phpbb_root_path, $config_file);
+		$this->settings = new \blitze\autodbrestore\services\settings($filesystem, $phpbb_root_path, $config_file);
 
-		return new \blitze\autodbrestore\event\listener($language, $template, $this->config);
+		return new \blitze\autodbrestore\event\listener($language, $template, $this->settings);
 	}
 
 	/**
@@ -197,14 +197,14 @@ class listener_test extends \phpbb_test_case
 	 * Test the load_permission_language event
 	 *
 	 * @dataProvider show_notice_test_data
-	 * @param array $config_data
+	 * @param array $settings
 	 * @param array $expected
 	 */
-	public function test_show_notice(array $config_data, array $expected)
+	public function test_show_notice(array $settings, array $expected)
 	{
 		$listener = $this->get_listener();
 
-		$this->config->set_settings($config_data);
+		$this->settings->set_settings($settings);
 
 		$listener->show_notice();
 

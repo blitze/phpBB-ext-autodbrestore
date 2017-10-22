@@ -1,6 +1,6 @@
 services:
-    blitze.autodbrestore.config:
-        class: blitze\autodbrestore\services\config
+    blitze.autodbrestore.settings:
+        class: blitze\autodbrestore\services\settings
         arguments:
             - '@filesystem'
             - '%core.root_path%'
@@ -19,8 +19,8 @@ services:
             - '@cache.driver'
             - '@log'
             - '@user'
-            - '@blitze.autodbrestore.config'
             - '@blitze.autodbrestore.restorer'
+            - '@blitze.autodbrestore.settings'
         calls:
             - [set_name, [blitze.autodbrestore.cron.task.restore]]
         tags:
@@ -31,6 +31,6 @@ services:
         arguments:
             - '@language'
             - '@template'
-            - '@blitze.autodbrestore.config'
+            - '@blitze.autodbrestore.settings'
         tags:
             - { name: event.listener }

@@ -121,15 +121,15 @@ class restore_test extends \phpbb_database_test_case
 		$restorer = new restorer($this->db, $phpbb_root_path, $phpEx, dirname(__FILE__) . "/fixtures/$db_type/");
 
 		$this->config_file = __DIR__ . '/fixtures/config.' . $phpEx;
-		$autodbrestore_config = new \blitze\autodbrestore\services\config($filesystem, $phpbb_root_path, $this->config_file);
+		$settings = new \blitze\autodbrestore\services\settings($filesystem, $phpbb_root_path, $this->config_file);
 
-		$autodbrestore_config->set_settings(array(
+		$settings->set_settings(array(
 			'backup_file' => 'backup_1508169244_bd0498f98633ec67.sql',
 			'restore_frequency' => 60,
 			'cron_last_run' => 0,
 		));
 
-		$task = new restore($cache, $logger, $user, $autodbrestore_config, $restorer);
+		$task = new restore($cache, $logger, $user, $restorer, $settings);
 
 		// this is normally called automatically in the yaml service config
 		// but we have to do it manually here
@@ -168,8 +168,8 @@ class restore_test extends \phpbb_database_test_case
 		$this->assertEquals(0, $this->get_data_count());
 
 		// initial config state
-		$config = include($this->config_file);
-		$this->assertEquals(0, $config['cron_last_run']);
+		$settings = include($this->config_file);
+		$this->assertEquals(0, $settings['cron_last_run']);
 
 		// run the task
 		$task->run();
@@ -178,8 +178,8 @@ class restore_test extends \phpbb_database_test_case
 		$this->assertEquals(1, $this->get_data_count());
 
 		// config file should now be updated with new last run time
-		$config = include($this->config_file);
-		$this->assertNotEquals(0, $config['cron_last_run']);
+		$settings = include($this->config_file);
+		$this->assertNotEquals(0, $settings['cron_last_run']);
 
 		// after successful run, the task should not be ready to run again until enough time has elapsed
 		$this->assertFalse($task->should_run());

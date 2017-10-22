@@ -129,16 +129,16 @@ class main_module_test extends \phpbb_database_test_case
 		$filesystem = new \phpbb\filesystem\filesystem();
 
 		$this->config_file = __DIR__ . '/fixtures/config.' . $phpEx;
-		$autodbrestore_config = new \blitze\autodbrestore\services\config($filesystem, $phpbb_root_path, $this->config_file);
+		$settings = new \blitze\autodbrestore\services\settings($filesystem, $phpbb_root_path, $this->config_file);
 
-		$autodbrestore_config->set_settings(array(
+		$settings->set_settings(array(
 			'backup_file' => 'backup_1508169244_bd0498f98633ec67.sql',
 			'restore_frequency' => 60,
 			'cron_last_run' => 123456789,
 		));
 
 		$phpbb_container->set('dbal.tools', $factory->get($db));
-		$phpbb_container->set('blitze.autodbrestore.config', $autodbrestore_config);
+		$phpbb_container->set('blitze.autodbrestore.settings', $settings);
 
 		return new \blitze\autodbrestore\acp\main_module();
 	}
