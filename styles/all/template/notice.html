@@ -13,7 +13,7 @@
 <script type="text/javascript">
 // <![CDATA[
 	var autodbrestore_frequency = {{ AUTODBRESTORE_SETTINGS.restore_frequency|e('js') }};
-	var autodbrestore_lastrun = {{ AUTODBRESTORE_SETTINGS.last_run|e('js') }};
+	var autodbrestore_lastrun = {{ AUTODBRESTORE_SETTINGS.cron_last_run|e('js') }};
 // ]]>
 </script>
 {% endif %}
