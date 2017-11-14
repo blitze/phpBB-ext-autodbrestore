@@ -36,15 +36,15 @@
 		<dl>
 			<dt><label for="show_notice">{{ lang('SHOW_NOTICE') ~ lang('COLON') }}</label></dt>
 			<dd>
-				<label><input type="radio" id="show_notice" name="show_notice" value="1"{% if CONFIG.show_notice %} checked="checked"{% endif %} {{ lang('YES') }}</label>
-				<label><input type="radio" name="show_notice" value="0"{% if !CONFIG.show_notice %} checked="checked"{% endif %} {{ lang('NO') }}</label>
+				<label><input type="radio" id="show_notice" name="show_notice" value="1"{% if CONFIG.show_notice %} checked="checked"{% endif %} /> {{ lang('YES') }}</label>
+				<label><input type="radio" name="show_notice" value="0"{% if !CONFIG.show_notice %} checked="checked"{% endif %} /> {{ lang('NO') }}</label>
 			</dd>
 		</dl>
 		<dl>
 			<dt><label for="auto_refresh">{{ lang('AUTO_REFRESH') ~ lang('COLON') }}</label></dt>
 			<dd>
-				<label><input type="radio" id="auto_refresh" name="auto_refresh" value="1"{% if CONFIG.auto_refresh %} checked="checked"{% endif %} {{ lang('YES') }}</label>
-				<label><input type="radio" name="auto_refresh" value="0"{% if !CONFIG.auto_refresh %} checked="checked"{% endif %} {{ lang('NO') }}</label>
+				<label><input type="radio" id="auto_refresh" name="auto_refresh" value="1"{% if CONFIG.auto_refresh %} checked="checked"{% endif %} /> {{ lang('YES') }}</label>
+				<label><input type="radio" name="auto_refresh" value="0"{% if !CONFIG.auto_refresh %} checked="checked"{% endif %} /> {{ lang('NO') }}</label>
 			</dd>
 		</dl>
 	</fieldset>
