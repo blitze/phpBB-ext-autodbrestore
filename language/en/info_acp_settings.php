@@ -23,6 +23,7 @@ $lang = array_merge($lang, array(
 	'ACP_AUTODBRESTORE'			=> 'Auto Database Restore',
 	'ACP_SETTING_SAVED'			=> 'Your settings have been saved',
 	'CREATE_NEW_BACKUP'			=> 'Create new backup',
+	'LOG_AUTODBRESTORE_UPDATED'	=> 'Updated Auto Database Restore settings',
 	'RESTORE_CUSTOM'			=> 'Custom',
 	'RESTORE_FREQUENCY_0'		=> 'Disabled',
 	'RESTORE_FREQUENCY_15'		=> 'Every 15 minutes',
