@@ -32,6 +32,8 @@ class settings
 		'backup_file'		=> '',
 		'restore_frequency'	=> 60,
 		'cron_last_run'		=> 0,
+		'auto_refresh'		=> true,
+		'show_notice'		=> true,
 	);
 
 	/**

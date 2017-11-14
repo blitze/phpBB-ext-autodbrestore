@@ -135,6 +135,8 @@ class main_module_test extends \phpbb_database_test_case
 			'backup_file' => 'backup_1508169244_bd0498f98633ec67.sql',
 			'restore_frequency' => 60,
 			'cron_last_run' => 123456789,
+			'auto_refresh' => true,
+			'show_notice' => true,
 		));
 
 		$phpbb_container->set('dbal.tools', $factory->get($db));
@@ -164,6 +166,8 @@ class main_module_test extends \phpbb_database_test_case
 				'backup_file' => 'backup_1508169244_bd0498f98633ec67.sql',
 				'restore_frequency' => 60,
 				'cron_last_run' => 123456789,
+				'auto_refresh' => true,
+				'show_notice' => true,
 			),
 			'U_ACTION' => 'u_action',
 			'U_CREATE_BACKUP' => 'index.php?i=acp_database&amp;mode=backup',
@@ -179,6 +183,8 @@ class main_module_test extends \phpbb_database_test_case
 				array(
 					array('file', '', false, request_interface::REQUEST, 'new_backup_file.sql'),
 					array('frequency', 0, false, request_interface::REQUEST, 25),
+					array('auto_refresh', true, false, request_interface::REQUEST, false),
+					array('show_notice', true, false, request_interface::REQUEST, false),
 					array('form_token', '', false, \phpbb\request\request_interface::REQUEST, sha1(0 . 'blitze/autodbrestore')),
 					array('creation_time', 0, false, \phpbb\request\request_interface::REQUEST, 0),
 				),
@@ -186,6 +192,8 @@ class main_module_test extends \phpbb_database_test_case
 					'backup_file' => 'new_backup_file.sql',
 					'restore_frequency' => 25,
 					'cron_last_run' => 123456789,
+					'auto_refresh' => false,
+					'show_notice' => false,
 				),
 				E_USER_NOTICE,
 				'ACP_SETTING_SAVED',
@@ -194,11 +202,15 @@ class main_module_test extends \phpbb_database_test_case
 				array(
 					array('file', '', false, request_interface::REQUEST, 'new_backup_file.sql'),
 					array('frequency', 0, false, request_interface::REQUEST, 25),
+					array('auto_refresh', true, false, request_interface::REQUEST, false),
+					array('show_notice', true, false, request_interface::REQUEST, false),
 				),
 				array(
 					'backup_file' => 'backup_1507249280_586447177a42ff9d.sql.gz',
 					'restore_frequency' => 60,
 					'cron_last_run' => 123456789,
+					'auto_refresh' => true,
+					'show_notice' => true,
 				),
 				E_USER_WARNING,
 				'FORM_INVALID',

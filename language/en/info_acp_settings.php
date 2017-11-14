@@ -19,13 +19,15 @@ if (empty($lang) || !is_array($lang))
 }
 
 $lang = array_merge($lang, array(
+	'AUTO_REFRESH'				=> 'Auto refresh to run cron?',
 	'ACP_AUTODBRESTORE'			=> 'Auto Database Restore',
 	'ACP_SETTING_SAVED'			=> 'Your settings have been saved',
 	'CREATE_NEW_BACKUP'			=> 'Create new backup',
-	'SELECT_FREQUENCY'			=> 'Select restore frequency',
+	'RESTORE_CUSTOM'			=> 'Custom',
 	'RESTORE_FREQUENCY_0'		=> 'Disabled',
 	'RESTORE_FREQUENCY_15'		=> 'Every 15 minutes',
 	'RESTORE_FREQUENCY_30'		=> 'Every 30 minutes',
 	'RESTORE_FREQUENCY_60'		=> 'Every hour',
-	'RESTORE_CUSTOM'			=> 'Custom',
+	'SELECT_FREQUENCY'			=> 'Select restore frequency',
+	'SHOW_NOTICE'				=> 'Show notice on front page?',
 ));

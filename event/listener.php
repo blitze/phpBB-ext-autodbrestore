@@ -71,8 +71,7 @@ class listener implements EventSubscriberInterface
 		if ($this->settings->is_ready())
 		{
 			$this->template->assign_vars(array(
-				'AUTODBRESTORE_FREQUENCY'	=> $this->settings->get('restore_frequency'),
-				'AUTODBRESTORE_LASTRUN'		=> $this->settings->get('cron_last_run'),
+				'AUTODBRESTORE_SETTINGS'	=> $this->settings->get_settings(),
 				'AUTODBRESTORE_NOTICE'		=> $this->language->lang('AUTODBRESTORE_NOTICE', $this->settings->get('restore_frequency')),
 			));
 		}

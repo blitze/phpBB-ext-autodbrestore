@@ -103,6 +103,8 @@ class main_module
 			$this->settings->save(array(
 				'backup_file'		=> $this->request->variable('file', ''),
 				'restore_frequency'	=> $this->request->variable('frequency', 0),
+				'auto_refresh'		=> $this->request->variable('auto_refresh', true),
+				'show_notice'		=> $this->request->variable('show_notice', true),
 			));
 
 			trigger_error($this->user->lang('ACP_SETTING_SAVED') . adm_back_link($this->u_action));
