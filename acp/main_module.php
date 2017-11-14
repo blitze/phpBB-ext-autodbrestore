@@ -15,6 +15,9 @@ namespace blitze\autodbrestore\acp;
  */
 class main_module
 {
+	/** @var \phpbb\log\log_interface */
+	protected $logger;
+
 	/** @var \phpbb\request\request_interface */
 	protected $request;
 
@@ -50,8 +53,9 @@ class main_module
 	 */
 	public function __construct()
 	{
-		global $request, $template, $user, $phpbb_container, $phpbb_admin_path, $phpbb_root_path, $phpEx;
+		global $phpbb_log, $request, $template, $user, $phpbb_container, $phpbb_admin_path, $phpbb_root_path, $phpEx;
 
+		$this->logger = $phpbb_log;
 		$this->request = $request;
 		$this->template = $template;
 		$this->user = $user;
@@ -67,7 +71,7 @@ class main_module
 	public function main()
 	{
 		$this->tpl_name = 'acp_settings';
-		$this->page_title = 'ACP_TITLE';
+		$this->page_title = 'ACP_AUTODBRESTORE';
 
 		$form_name = 'blitze/autodbrestore';
 
@@ -106,6 +110,8 @@ class main_module
 				'auto_refresh'		=> $this->request->variable('auto_refresh', true),
 				'show_notice'		=> $this->request->variable('show_notice', true),
 			));
+
+			$this->logger->add('admin', $this->user->data['user_id'], $this->user->ip, 'LOG_AUTODBRESTORE_UPDATED');
 
 			trigger_error($this->user->lang('ACP_SETTING_SAVED') . adm_back_link($this->u_action));
 		}

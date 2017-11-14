@@ -18,6 +18,9 @@ class restore extends \phpbb\cron\task\base
 	/** @var \phpbb\cache\driver\driver_interface */
 	protected $cache;
 
+	/** @var \phpbb\log\log_interface */
+	protected $logger;
+
 	/** @var \phpbb\user */
 	protected $user;
 
