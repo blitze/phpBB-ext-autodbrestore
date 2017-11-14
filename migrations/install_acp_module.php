@@ -22,7 +22,7 @@ class install_acp_module extends \phpbb\db\migration\migration
 		return array(
 			array('module.add', array(
 				'acp',
-				'ACP_CAT_DOT_MODS',
+				'ACP_CAT_MAINTENANCE',
 				'ACP_AUTODBRESTORE'
 			)),
 			array('module.add', array(
