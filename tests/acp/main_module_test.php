@@ -16,6 +16,7 @@ require_once dirname(__FILE__) . '../../../../../../includes/functions_acp.php';
 
 class main_module_test extends \phpbb_database_test_case
 {
+	protected $logger;
 	protected $template;
 	protected $user;
 	protected $config_file;
@@ -72,7 +73,7 @@ class main_module_test extends \phpbb_database_test_case
 	 */
 	public function get_module(array $variable_map, $submitted = false)
 	{
-		global $config, $db, $request, $template, $user, $phpbb_container, $phpbb_dispatcher, $phpbb_admin_path, $phpbb_root_path, $phpEx;
+		global $config, $db, $request, $template, $user, $phpbb_log, $phpbb_container, $phpbb_dispatcher, $phpbb_admin_path, $phpbb_root_path, $phpEx;
 
 		$db = $this->new_dbal();
 
@@ -89,6 +90,11 @@ class main_module_test extends \phpbb_database_test_case
 		$user->timezone = new \DateTimeZone('UTC');
 		$user->data['user_id'] = 2;
 		$this->user = &$user;
+
+		$phpbb_log = $this->getMockBuilder('\phpbb\log\log')
+			->disableOriginalConstructor()
+			->getMock();
+		$this->logger =& $phpbb_log;
 
 		$request = $this->getMock('\phpbb\request\request_interface');
 		$request->expects($this->any())
@@ -231,6 +237,8 @@ class main_module_test extends \phpbb_database_test_case
 		$module = $this->get_module($variable_map, true);
 
 		$this->setExpectedTriggerError($error, $message);
+		$this->logger->expects($this->exactly($error == E_USER_NOTICE ? 1 : 0))
+			->method('add');
 
 		$reflection = new \ReflectionClass($module);
 		$method = $reflection->getMethod('save_settings');

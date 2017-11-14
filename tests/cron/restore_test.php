@@ -127,6 +127,8 @@ class restore_test extends \phpbb_database_test_case
 			'backup_file' => 'backup_1508169244_bd0498f98633ec67.sql',
 			'restore_frequency' => 60,
 			'cron_last_run' => 0,
+			'auto_refresh' => true,
+			'show_notice' => true,
 		));
 
 		$task = new restore($cache, $logger, $user, $restorer, $settings);
