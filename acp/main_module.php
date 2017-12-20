@@ -15,6 +15,9 @@ namespace blitze\autodbrestore\acp;
  */
 class main_module
 {
+	/** @var \phpbb\language\language */
+	protected $language;
+
 	/** @var \phpbb\log\log_interface */
 	protected $logger;
 
@@ -55,6 +58,7 @@ class main_module
 	{
 		global $phpbb_log, $request, $template, $user, $phpbb_container, $phpbb_admin_path, $phpbb_root_path, $phpEx;
 
+		$this->language = $phpbb_container->get('language');
 		$this->logger = $phpbb_log;
 		$this->request = $request;
 		$this->template = $template;
@@ -70,6 +74,8 @@ class main_module
 	 */
 	public function main()
 	{
+		$this->language->add_lang('settings', 'blitze/autodbrestore');
+
 		$this->tpl_name = 'acp_settings';
 		$this->page_title = 'ACP_AUTODBRESTORE';
 

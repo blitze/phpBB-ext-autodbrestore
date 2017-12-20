@@ -146,6 +146,7 @@ class main_module_test extends \phpbb_database_test_case
 		));
 
 		$phpbb_container->set('dbal.tools', $factory->get($db));
+		$phpbb_container->set('language', $language);
 		$phpbb_container->set('blitze.autodbrestore.settings', $settings);
 
 		return new \blitze\autodbrestore\acp\main_module();
