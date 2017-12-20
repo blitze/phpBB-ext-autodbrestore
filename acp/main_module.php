@@ -43,10 +43,10 @@ class main_module
 	protected $php_ext;
 
 	/** @var string */
-	public $tpl_name;
+	public $tpl_name = 'acp_settings';
 
 	/** @var string */
-	public $page_title;
+	public $page_title = 'ACP_AUTODBRESTORE';
 
 	/** @var string */
 	public $u_action;
@@ -75,9 +75,6 @@ class main_module
 	public function main()
 	{
 		$this->language->add_lang('settings', 'blitze/autodbrestore');
-
-		$this->tpl_name = 'acp_settings';
-		$this->page_title = 'ACP_AUTODBRESTORE';
 
 		$form_name = 'blitze/autodbrestore';
 
