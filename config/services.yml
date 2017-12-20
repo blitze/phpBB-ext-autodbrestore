@@ -4,7 +4,7 @@ services:
         arguments:
             - '@filesystem'
             - '%core.root_path%'
-            - '%core.root_path%ext/blitze/autodbrestore/config.%core.php_ext%'
+            - '%core.root_path%store/ext_blitze_autodbrestore/config.%core.php_ext%'
 
     blitze.autodbrestore.restorer:
         class: blitze\autodbrestore\services\restorer
